@@ -27,7 +27,7 @@ int comb(int n, int k)
     return r;
 }
 
-// 对完成染色染色的 kn 完全图中的 monochromatic K4 进行计数
+// 对完成染色的 kn 完全图中的 monochromatic K4 进行计数
 int count_kn(int edge_record[N][N])
 {
     int kn = 0;
