@@ -27,6 +27,7 @@ int comb(int n, int k)
     return r;
 }
 
+// 对完成染色染色的 kn 完全图中的 monochromatic K4 进行计数
 int count_kn(int edge_record[N][N])
 {
     int kn = 0;
@@ -47,9 +48,11 @@ int count_kn(int edge_record[N][N])
     return kn;
 }
 
+// 状态转移方法
 void dp_move(int color_map[], int color, int edge_colors, int masks[], int bin_len, int ncolors, int next[], int drop[])
 {
     if (edge_colors == 0) {
+        //子图内其它边均未染色
         next[0]++;
     }
     else {
@@ -63,14 +66,18 @@ void dp_move(int color_map[], int color, int edge_colors, int masks[], int bin_l
                     ci = cm >> (i * bin_len);
                 }
                 else {
+                    //子图内其它边异色
                     return;
                 }
             }
         }
+        //子图内其它边同色
         if (cs == color) {
+            //子图内当前染色边与其他已染色边同色
             next[ci]++;
         }
         else {
+            //子图内当前染色边与其他已染色边异色
             drop[ci]++;
         }
     }
@@ -81,14 +88,14 @@ int main()
     int n = N;
     int k = 4;
     int ncolors = 2;
-    //kn中的边数
-    int ken = comb(k, 2);
-    //总边数
-    int en = comb(n, 2);
-    //kn个数
-    int kn = comb(n, k);
-    //编码颜色
-    int maxn = ken;
+    //目标子图的边数
+    int sub_edge_cnt = comb(k, 2);
+    //Kn总边数
+    int edge_cnt = comb(n, 2);
+    //目标子图个数
+    int sub_cnt = comb(n, k);
+    //编码颜色。k=4，n=2时，颜色编码为0b000111/0b111000。
+    int maxn = sub_edge_cnt;
     int bin_len = 0;
     while (maxn) {
         maxn = maxn >> 1;
@@ -108,19 +115,13 @@ int main()
     }
     p[0] = p[1];
 
-    //处于不同染色状态的kn计数
-    int sta_cnt[ken];
-    for (int i = 0; i < ken; i++) {
-        sta_cnt[i] = 0;
-    }
+    //处于不同染色状态的目标子图计数
+    int sta_cnt[sub_edge_cnt];
+    memset(sta_cnt, 0, sizeof(int) * sub_edge_cnt);
 
     //边染色记录
     int edge_record[n][n];
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < n; j++) {
-            edge_record[i][j] = 0;
-        }
-    }
+    memset(edge_record, 0, sizeof(int) * n * n);
 
     //时间记录
     clock_t start, end;
@@ -131,9 +132,11 @@ int main()
     edge_record[0][1] = color_map[0];
     edge_record[1][0] = color_map[0];
     sta_cnt[1] = comb(n - 2, 2);
-    sta_cnt[0] = kn - sta_cnt[1];
+    sta_cnt[0] = sub_cnt - sta_cnt[1];
+
     //后续染色
-    int dp_record[ncolors][2][ken];
+    int dp_next[ncolors][sub_edge_cnt]; //完成一次染色后，转移状态的子图计数
+    int dp_drop[ncolors][sub_edge_cnt]; //完成一次染色后，被破坏单色性的子图计数
     for (int i = 1; i < n; i++) {
         for (int j = 0; j < i; j++) {
             if (edge_record[i][j] == 0) {
@@ -141,13 +144,8 @@ int main()
                 for (int a = 0; a < n; a++) {
                     add_line[a] = edge_record[i][a] + edge_record[j][a];
                 }
-                for (int color = 0; color < ncolors; color++) {
-                    for (int t = 0; t < 2; t++) {
-                        for (int m = 0; m < ken; m++) {
-                            dp_record[color][t][m] = 0;
-                        }
-                    }
-                }
+                memset(dp_next, 0, sizeof(int) * ncolors * sub_edge_cnt);
+                memset(dp_drop, 0, sizeof(int) * ncolors * sub_edge_cnt);
                 for (int a = 0; a < n - 1; a++) {
                     if (a != i && a != j) {
                         for (int b = a + 1; b < n; b++) {
@@ -160,8 +158,8 @@ int main()
                                             masks,
                                             bin_len,
                                             ncolors,
-                                            dp_record[c][0],
-                                            dp_record[c][1]);
+                                            dp_next[c],
+                                            dp_drop[c]);
                                 }
                             }
                         }
@@ -170,13 +168,14 @@ int main()
 
                 float min_prob = FLT_MAX;
                 int color_idx = 0;
-                int sta_cnt_dp[ncolors][ken];
+                int sta_cnt_dp[ncolors][sub_edge_cnt];
+                // 选择减少后续同色子图出现期望的染色方案
                 for (int c = 0; c < ncolors; c++) {
                     float prob = 0;
-                    for (int m = 0; m < ken; m++) {
-                        sta_cnt_dp[c][m] = sta_cnt[m] - dp_record[c][0][m] - dp_record[c][1][m];
+                    for (int m = 0; m < sub_edge_cnt; m++) {
+                        sta_cnt_dp[c][m] = sta_cnt[m] - dp_next[c][m] - dp_drop[c][m];
                         if (m > 0) {
-                            sta_cnt_dp[c][m] += dp_record[c][0][m - 1];
+                            sta_cnt_dp[c][m] += dp_next[c][m - 1];
                         }
                         prob += sta_cnt_dp[c][m] * p[m];
                     }
@@ -187,7 +186,7 @@ int main()
                 }
                 edge_record[i][j] = color_map[color_idx];
                 edge_record[j][i] = color_map[color_idx];
-                memcpy(sta_cnt, sta_cnt_dp[color_idx], ken);
+                memcpy(sta_cnt, sta_cnt_dp[color_idx], sub_edge_cnt * sizeof(int));
             }
         }
     }
@@ -195,8 +194,8 @@ int main()
     end = clock();
     cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
 
-    printf("Complete! Time used: %f\n", cpu_time_used);
-    printf("KN: %d\n", count_kn(edge_record));
+    printf("Complete! Time used: %fs\n", cpu_time_used);
+    printf("Monochromatic K4: %d\n", count_kn(edge_record));
 
     return 0;
 }
