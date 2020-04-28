@@ -94,7 +94,7 @@ int main()
     int edge_cnt = comb(n, 2);
     //目标子图个数
     int sub_cnt = comb(n, k);
-    //编码颜色。k=4，n=2时，颜色编码为0b000111/0b111000。
+    //编码颜色。k=4，n=2时，颜色编码为0b000001/0b001000。
     int maxn = sub_edge_cnt;
     int bin_len = 0;
     while (maxn) {
