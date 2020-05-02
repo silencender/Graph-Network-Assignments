@@ -30,22 +30,30 @@ int comb(int n, int k)
 // 对完成染色的 kn 完全图中的 monochromatic K4 进行计数
 int count_kn(int edge_record[N][N])
 {
-    int kn = 0;
+    int wkn = 0;
+    int bkn = 0;
+    int all = 0;
     int n = N;
+
     for (int i = 0; i < n - 3; i++) {
         for (int j = i + 1; j < n - 2; j++) {
             for (int p = j + 1; p < n - 1; p++) {
                 for (int q = p + 1; q < n; q++) {
+                    all += 1;
                     int al = edge_record[i][j] + edge_record[i][p] + edge_record[i][q] + edge_record[j][p]
                         + edge_record[j][q] + edge_record[p][q];
-                    if (al == 6 || al == (6 << 3)) {
-                        kn++;
+                    if (al == 6) {
+                        wkn++;
+                    }
+                    if (al == (6 << 3)) {
+                        bkn++;
                     }
                 }
             }
         }
     }
-    return kn;
+    printf("Total K4:%d, White:%d, Black:%d \n", all, wkn, bkn);
+    return wkn + bkn;
 }
 
 // 状态转移方法
@@ -108,16 +116,16 @@ int main()
         masks[i] = ((1 << bin_len) - 1) << (i * bin_len);
     }
     //预先计算常用的概率
-    float p[6];
-    p[5] = 1.0 / 2;
-    for (int i = 4; i > 0; i--) {
+    float p[7];
+    p[6] = 1.0;
+    for (int i = 5; i > 0; i--) {
         p[i] = p[i + 1] / 2;
     }
     p[0] = p[1];
 
     //处于不同染色状态的目标子图计数
-    int sta_cnt[sub_edge_cnt];
-    memset(sta_cnt, 0, sizeof(int) * sub_edge_cnt);
+    int sta_cnt[sub_edge_cnt + 1];
+    memset(sta_cnt, 0, sizeof(int) * (sub_edge_cnt + 1));
 
     //边染色记录
     int edge_record[n][n];
@@ -168,14 +176,17 @@ int main()
 
                 float min_prob = FLT_MAX;
                 int color_idx = 0;
-                int sta_cnt_dp[ncolors][sub_edge_cnt];
+                int sta_cnt_dp[ncolors][sub_edge_cnt + 1];
                 // 选择减少后续同色子图出现期望的染色方案
                 for (int c = 0; c < ncolors; c++) {
                     float prob = 0;
-                    for (int m = 0; m < sub_edge_cnt; m++) {
-                        sta_cnt_dp[c][m] = sta_cnt[m] - dp_next[c][m] - dp_drop[c][m];
+                    for (int m = 0; m < sub_edge_cnt + 1; m++) {
+                        sta_cnt_dp[c][m] = sta_cnt[m];
                         if (m > 0) {
                             sta_cnt_dp[c][m] += dp_next[c][m - 1];
+                            if (m != sub_edge_cnt) {
+                                sta_cnt_dp[c][m] -= dp_next[c][m] + dp_drop[c][m];
+                            }
                         }
                         prob += sta_cnt_dp[c][m] * p[m];
                     }
@@ -186,7 +197,7 @@ int main()
                 }
                 edge_record[i][j] = color_map[color_idx];
                 edge_record[j][i] = color_map[color_idx];
-                memcpy(sta_cnt, sta_cnt_dp[color_idx], sub_edge_cnt * sizeof(int));
+                memcpy(sta_cnt, sta_cnt_dp[color_idx], (sub_edge_cnt + 1) * sizeof(int));
             }
         }
     }
