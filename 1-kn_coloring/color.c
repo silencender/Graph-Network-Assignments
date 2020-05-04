@@ -28,7 +28,7 @@ int comb(int n, int k)
 }
 
 // 对完成染色的 kn 完全图中的 monochromatic K4 进行计数
-int count_kn(int edge_record[N][N])
+void count_k4(int edge_record[N][N])
 {
     int wkn = 0;
     int bkn = 0;
@@ -53,7 +53,6 @@ int count_kn(int edge_record[N][N])
         }
     }
     printf("Total K4:%d, White:%d, Black:%d \n", all, wkn, bkn);
-    return wkn + bkn;
 }
 
 // 状态转移方法
@@ -116,10 +115,10 @@ int main()
         masks[i] = ((1 << bin_len) - 1) << (i * bin_len);
     }
     //预先计算常用的概率
-    float p[7];
-    p[6] = 1.0;
-    for (int i = 5; i > 0; i--) {
-        p[i] = p[i + 1] / 2;
+    float p[sub_edge_cnt + 1];
+    p[sub_edge_cnt] = 1.0;
+    for (int i = sub_edge_cnt - 1; i > 0; i--) {
+        p[i] = p[i + 1] / ncolors;
     }
     p[0] = p[1];
 
@@ -146,8 +145,8 @@ int main()
     int dp_next[ncolors][sub_edge_cnt]; //完成一次染色后，转移状态的子图计数
     int dp_drop[ncolors][sub_edge_cnt]; //完成一次染色后，被破坏单色性的子图计数
     int add_line[n]; //辅助快速计算四点六边颜色和
-    for (int i = 0; i < n-1; i++) {
-        for (int j = i+1; j < n; j++) {
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = i + 1; j < n; j++) {
             if (edge_record[i][j] == 0) {
                 for (int a = 0; a < n; a++) {
                     add_line[a] = edge_record[i][a] + edge_record[j][a];
@@ -206,7 +205,8 @@ int main()
     cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
 
     printf("Complete! Time used: %fs\n", cpu_time_used);
-    printf("Monochromatic K4: %d\n", count_kn(edge_record));
+    printf("Monochromatic K%d: %d\n", k, sta_cnt[sub_edge_cnt]);
+    count_k4(edge_record);
 
     return 0;
 }
