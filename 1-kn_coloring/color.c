@@ -145,7 +145,7 @@ int main()
     //后续染色
     int dp_next[ncolors][sub_edge_cnt]; //完成一次染色后，转移状态的子图计数
     int dp_drop[ncolors][sub_edge_cnt]; //完成一次染色后，被破坏单色性的子图计数
-    int add_line[n];
+    int add_line[n]; //辅助快速计算四点六边颜色和
     for (int i = 0; i < n-1; i++) {
         for (int j = i+1; j < n; j++) {
             if (edge_record[i][j] == 0) {
@@ -180,8 +180,8 @@ int main()
                 // 选择减少后续同色子图出现期望的染色方案
                 for (int c = 0; c < ncolors; c++) {
                     float prob = 0;
+                    memcpy(sta_cnt_dp[color_idx], sta_cnt, (sub_edge_cnt + 1) * sizeof(int));
                     for (int m = 0; m < sub_edge_cnt + 1; m++) {
-                        sta_cnt_dp[c][m] = sta_cnt[m];
                         if (m > 0) {
                             sta_cnt_dp[c][m] += dp_next[c][m - 1];
                         }
