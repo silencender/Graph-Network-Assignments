@@ -145,10 +145,10 @@ int main()
     //后续染色
     int dp_next[ncolors][sub_edge_cnt]; //完成一次染色后，转移状态的子图计数
     int dp_drop[ncolors][sub_edge_cnt]; //完成一次染色后，被破坏单色性的子图计数
-    for (int i = 1; i < n; i++) {
-        for (int j = 0; j < i; j++) {
+    int add_line[n];
+    for (int i = 0; i < n-1; i++) {
+        for (int j = i+1; j < n; j++) {
             if (edge_record[i][j] == 0) {
-                int add_line[n];
                 for (int a = 0; a < n; a++) {
                     add_line[a] = edge_record[i][a] + edge_record[j][a];
                 }
@@ -184,9 +184,9 @@ int main()
                         sta_cnt_dp[c][m] = sta_cnt[m];
                         if (m > 0) {
                             sta_cnt_dp[c][m] += dp_next[c][m - 1];
-                            if (m != sub_edge_cnt) {
-                                sta_cnt_dp[c][m] -= dp_next[c][m] + dp_drop[c][m];
-                            }
+                        }
+                        if (m != sub_edge_cnt) {
+                            sta_cnt_dp[c][m] -= dp_next[c][m] + dp_drop[c][m];
                         }
                         prob += sta_cnt_dp[c][m] * p[m];
                     }
