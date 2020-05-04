@@ -5,5 +5,5 @@
 
 ## Run
 ```bash
-gcc -o color color.c -O2 && ./color
+gcc -o color color.c -O3 -std=c99 && ./color
 ```
