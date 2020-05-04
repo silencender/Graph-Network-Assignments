@@ -180,7 +180,7 @@ int main()
                 // 选择减少后续同色子图出现期望的染色方案
                 for (int c = 0; c < ncolors; c++) {
                     float prob = 0;
-                    memcpy(sta_cnt_dp[color_idx], sta_cnt, (sub_edge_cnt + 1) * sizeof(int));
+                    memcpy(sta_cnt_dp[c], sta_cnt, (sub_edge_cnt + 1) * sizeof(int));
                     for (int m = 0; m < sub_edge_cnt + 1; m++) {
                         if (m > 0) {
                             sta_cnt_dp[c][m] += dp_next[c][m - 1];
