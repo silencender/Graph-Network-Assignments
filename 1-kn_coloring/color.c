@@ -207,6 +207,15 @@ int main()
     printf("Complete! Time used: %fs\n", cpu_time_used);
     printf("Monochromatic K%d: %d\n", k, sta_cnt[sub_edge_cnt]);
     count_k4(edge_record);
-
+/*
+    FILE* file = fopen("record.txt", "w");
+    for(int i=0; i<n; i++) {
+        for(int j=0; j<n; j++) {
+            fprintf(file, "%d ", edge_record[i][j]);
+        }
+        fprintf(file, "\n");
+    }
+    fclose(file);
+*/
     return 0;
 }
