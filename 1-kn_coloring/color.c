@@ -5,6 +5,7 @@
 
 #define N 100
 
+// 计算组合数
 int comb(int n, int k)
 {
     if (k > n / 2) {
@@ -102,6 +103,7 @@ int main()
     //目标子图个数
     int sub_cnt = comb(n, k);
     //编码颜色。k=4，n=2时，颜色编码为0b000001/0b001000。
+    //编码后可通过SIMD得到计算加速
     int maxn = sub_edge_cnt;
     int bin_len = 0;
     while (maxn) {
@@ -145,6 +147,7 @@ int main()
     int dp_next[ncolors][sub_edge_cnt]; //完成一次染色后，转移状态的子图计数
     int dp_drop[ncolors][sub_edge_cnt]; //完成一次染色后，被破坏单色性的子图计数
     int add_line[n]; //辅助快速计算四点六边颜色和
+    //遍历需要染色的边
     for (int i = 0; i < n - 1; i++) {
         for (int j = i + 1; j < n; j++) {
             if (edge_record[i][j] == 0) {
@@ -153,12 +156,14 @@ int main()
                 }
                 memset(dp_next, 0, sizeof(int) * ncolors * sub_edge_cnt);
                 memset(dp_drop, 0, sizeof(int) * ncolors * sub_edge_cnt);
+                //检查当前染色边会影响到的K4子图
                 for (int a = 0; a < n - 1; a++) {
                     if (a != i && a != j) {
                         for (int b = a + 1; b < n; b++) {
                             if (b != i && b != j) {
                                 for (int c = 0; c < ncolors; c++) {
                                     int edge_colors = add_line[a] + add_line[b] + edge_record[a][b];
+                                    //记录当前K4子图造成的状态转移
                                     dp_move(color_map,
                                             color_map[c],
                                             edge_colors,
